@@ -1,762 +1,1049 @@
-# Xud-Bank — SecureDataMonitor
+# SecureDataMonitor
 
-> **Application Web bancaire sécurisée avec moteur de surveillance événementielle en temps réel**  
-> Université de Kara – FAST-LPSIC S6 | Programmation Événementielle & Cybersécurité | 2025-2026
+> **Web application with real-time security monitoring and event-driven threat detection.**
 
----
+[![Python](https://img.shields.io/badge/Python-3.13+-3776AB?logo=python\&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql\&logoColor=white)](https://www.postgresql.org/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy\&logoColor=white)](https://www.sqlalchemy.org/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-Real--Time-black)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+[![Security](https://img.shields.io/badge/Focus-Cybersecurity-6f42c1)](#-security-monitoring)
+[![Academic](https://img.shields.io/badge/Project-Academic-blue)](#-academic-context)
 
-## 📋 Table des matières
+**Xud-Bank** is an academic banking web application designed to combine **secure application development** with a **real-time SOC-oriented monitoring system**.
 
-1. [Présentation](#-1-présentation)
-2. [Architecture](#-2-architecture)
-3. [Stack Technologique](#-3-stack-technologique)
-4. [Structure du Projet](#-4-structure-du-projet)
-5. [Modèle de Données](#-5-modèle-de-données)
-6. [Identification et Rôles (RBAC)](#-6-identification-et-rôles-rbac)
-7. [Routes et Espaces Métiers](#-7-routes-et-espaces-métiers)
-8. [Moteur Événementiel](#-8-moteur-événementiel)
-9. [Règles de Détection SOC](#-9-règles-de-détection-soc)
-10. [Rapports Bancaires](#-10-rapports-bancaires)
-11. [Installation & Déploiement](#-11-installation--déploiement)
-12. [Journalisation](#-12-journalisation)
-13. [Tests des Triggers d'Événements](#-13-tests-des-triggers-dévénements)
+The project implements role-based access control, security event collection, automated threat detection, real-time alerting through WebSockets, account locking, and security reporting.
+
+> **Academic project — University of Kara, 2nd Year Bachelor’s degree in Computer Security & Cybersecurity — 2025**
 
 ---
 
-## 🔍 1. Présentation
+## 👨‍💻 Author
 
-**XUD-Bank** est une application Web bancaire de démonstration destinée au personnel interne et aux clients. Elle intègre directement un moteur de détection d'intrusion appelé **SecureDataMonitor**. 
+**TAKOUDA KOKOU TRÉSOR**
 
-Le projet applique une **Séparation des Tâches (Segregation of Duties)** stricte : chaque métier dispose de son espace dédié avec des permissions spécifiques (Sécurité, Direction, Comptabilité, Client).
+Cybersecurity Student
 
-### Fonctionnalités Clés
-
-- ✅ **Authentification sécurisée** avec sessions chiffrées
-- ✅ **Contrôle d'accès basé sur les rôles (RBAC)**
-- ✅ **Surveillance temps réel** via WebSockets
-- ✅ **Détection automatique** de 7 règles de sécurité
-- ✅ **Génération de rapports PDF** groupés par classification
-- ✅ **Historique des transactions** stocké en JSON
-- ✅ **Alertes CRITICAL** pour tentatives de vol de dossiers
+GitHub:
+https://github.com/whitexudan15
 
 ---
 
-## 🏗️ 2. Architecture
+## 🎓 Academic Context
 
-Le projet combine deux design patterns :
+This project was developed as part of an academic cybersecurity and event-driven programming project at:
 
-### Layered Architecture (4 couches)
+**Université de Kara — FAST-LPSIC**
 
-```
-┌─────────────────────────────────────────────┐
-│  PRÉSENTATION  routers/ + templates/        │  HTTP, vues HTML, WebSocket (Espaces RBAC)
-├─────────────────────────────────────────────┤
-│  MÉTIER        services/auth_service.py     │  Logique bancaire, Threadpool, Bcrypt
-├─────────────────────────────────────────────┤
-│  ÉVÉNEMENTIELLE events/dispatcher.py        │  Pub/Sub, détection, alertes asynchrones
-├─────────────────────────────────────────────┤
-│  PERSISTANCE   models/ + database.py        │  CRUD SQLAlchemy 2.0 (asyncpg)
-└─────────────────────────────────────────────┘
-```
+Academic year:
 
-### Pattern Observer (Pub/Sub)
+**2025–2026**
 
-```
-Router → dispatcher.emit() → Handler → Logger + Alert + WebSocket Broadcast
-```
+The project focuses on applying software engineering concepts to a security-oriented use case, particularly:
+
+* event-driven programming
+* asynchronous processing
+* web application security
+* RBAC
+* security monitoring
+* intrusion detection concepts
+* security logging
+* real-time alerting
 
 ---
 
-## 🛠️ 3. Stack Technologique
+## ⚠️ Disclaimer
 
-| Composant | Technologie | Détails |
-|---|---|---|
-| **Backend** | FastAPI (Python 3.13+) | Asynchrone natif, routers segmentés |
-| **Base de données** | PostgreSQL (Railway) | Driver haute performance `asyncpg` |
-| **ORM** | SQLAlchemy 2.0 | Opérations totalement asynchrones |
-| **Mots de passe** | Passlib (Bcrypt cost=12) | Exécuté sur *Threadpool* (non-bloquant) |
-| **Sessions** | itsdangerous | Cookies chiffrés et signés sans BDD |
-| **WebSocket** | WebSockets natifs | Optimisation visuelle par Batching (`requestAnimationFrame`) |
-| **PDF** | FPDF2 | Génération de rapports bancaires structurés |
-| **Frontend** | HTML5 / Vanilla CSS / JS | Interfaces dynamiques / Chart.js / Google Fonts (Syne, Figtree) |
+Xud-Bank is an **academic and educational project**.
+
+It is **not intended to be used as a real banking system** and has not undergone the security, compliance, availability and operational validation required for production financial software.
+
+A production deployment would require additional controls such as:
+
+* hardened infrastructure
+* HTTPS/TLS everywhere
+* secure secret management
+* WAF
+* IDS/IPS
+* centralized SIEM
+* stronger authentication and MFA
+* comprehensive audit trails
+* penetration testing
+* external security audits
+* backup and disaster recovery
+* regulatory and compliance controls
 
 ---
 
-## 📁 4. Structure du Projet
+## 📚 What This Project Demonstrates
 
+This project demonstrates the ability to design and implement a web application where **security monitoring is part of the application architecture rather than an external afterthought**.
+
+The main technical concepts demonstrated are:
+
+```text
+Secure Web Application
+        +
+RBAC / Segregation of Duties
+        +
+Event-Driven Architecture
+        +
+Threat Detection
+        +
+Security Logging
+        +
+Real-Time Alerting
+        +
+SOC Monitoring
 ```
+
+This makes the project particularly relevant to **Web Security, SOC and Blue Team-oriented learning**.
+
+---
+
+## 🎯 Project Overview
+
+Xud-Bank simulates a banking environment where different users interact with separate business areas according to their roles.
+
+The main objective was not only to build a banking application, but also to demonstrate how **application security events can be collected, analyzed and transformed into actionable SOC alerts**.
+
+The application therefore combines two complementary aspects:
+
+* **Secure Web Application**
+* **Security Monitoring / SOC Engine**
+
+### Key Features
+
+* 🔐 Secure authentication and session management
+* 👥 Role-Based Access Control (**RBAC**)
+* 🛡️ Segregation of Duties between business roles
+* 🚨 Automated security event detection
+* 📡 Real-time SOC monitoring through WebSockets
+* 🔎 Detection of brute-force attempts
+* 💉 SQL injection pattern detection
+* 🚫 Unauthorized access detection
+* 📊 Mass data access / suspected exfiltration detection
+* 👤 Username enumeration detection
+* 🌙 Off-hours access monitoring
+* 📁 Sensitive banking report protection
+* 🔒 Automatic account locking
+* 📄 Security-aware PDF report generation
+* 📝 Persistent security event logging
+* 📈 SOC statistics and alert management
+
+---
+
+## 🧠 Security Monitoring Concept
+
+The main component of the project is **SecureDataMonitor**.
+
+Instead of treating security as an isolated feature, application actions generate security events that are processed by an asynchronous event engine.
+
+```text
+                    ┌──────────────────────┐
+                    │      Web Request      │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │      Application     │
+                    │       Router         │
+                    └──────────┬───────────┘
+                               │
+                         Security Event
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   Event Dispatcher   │
+                    │       Pub/Sub        │
+                    └──────────┬───────────┘
+                               │
+             ┌─────────────────┼─────────────────┐
+             ▼                 ▼                 ▼
+       ┌──────────┐      ┌──────────┐      ┌─────────────┐
+       │ Detection│      │  Logger  │      │ WebSocket   │
+       │  Engine  │      │          │      │ Broadcast   │
+       └────┬─────┘      └────┬─────┘      └──────┬──────┘
+            │                 │                   │
+            ▼                 ▼                   ▼
+       ┌──────────┐      ┌──────────┐      ┌─────────────┐
+       │  Alert   │      │ Database │      │ SOC Dashboard│
+       └──────────┘      └──────────┘      └─────────────┘
+```
+
+This architecture makes it possible to keep security monitoring separated from the main business logic while still reacting to application activity in real time.
+
+---
+
+## 🏗️ Architecture
+
+The project follows a **layered architecture** combined with an **event-driven architecture**.
+
+### Layered Architecture
+
+```text
+┌───────────────────────────────────────────────┐
+│                 PRESENTATION                  │
+│     Routers / Templates / WebSockets          │
+├───────────────────────────────────────────────┤
+│                    BUSINESS                   │
+│       Authentication / Banking Logic          │
+├───────────────────────────────────────────────┤
+│                  EVENT-DRIVEN                 │
+│      Dispatcher / Detection / Alerts          │
+├───────────────────────────────────────────────┤
+│                  PERSISTENCE                  │
+│       SQLAlchemy / PostgreSQL / Logs          │
+└───────────────────────────────────────────────┘
+```
+
+### Design Patterns
+
+The application mainly relies on:
+
+* **Layered Architecture**
+* **Observer / Publish-Subscribe**
+* **Service Layer**
+* **Role-Based Access Control**
+* **Event-driven processing**
+
+---
+
+## 🛠️ Technology Stack
+
+| Area                    | Technology               |
+| ----------------------- | ------------------------ |
+| Backend                 | Python / FastAPI         |
+| Database                | PostgreSQL               |
+| ORM                     | SQLAlchemy 2.0           |
+| Async Driver            | asyncpg                  |
+| Authentication          | Passlib / Bcrypt         |
+| Sessions                | itsdangerous             |
+| Real-time communication | Native WebSockets        |
+| PDF generation          | FPDF2                    |
+| Frontend                | HTML5 / CSS / JavaScript |
+| Charts                  | Chart.js                 |
+| Deployment              | Railway / local          |
+| Server                  | Uvicorn / Gunicorn       |
+
+---
+
+## 📁 Project Structure
+
+```text
 xud-bank/
-├── app/                              # Application Bancaire (Core)
-│   ├── main.py                       # Point d'entrée, montage routers & middlewares
-│   ├── database.py                   # Configuration Railway + Asyncpg
-│   ├── config.py                     # Settings Pydantic + Jinja2 Environment
-│   ├── models/                       # Schémas SQLAlchemy
-│   │   ├── user.py                   # User, UserRole
-│   │   ├── bank_account.py           # BankAccount, AccountClassification
-│   │   ├── security_event.py         # SecurityEvent, EventType, SeverityLevel
-│   │   ├── login_attempt.py          # LoginAttempt
-│   │   └── alert.py                  # Alert
-│   ├── routers/                      # Logique Role-Based Access Control
-│   │   ├── auth.py                   # (/auth) Login, Logout, Register
-│   │   ├── soc.py                    # (/soc/*) Surveillance, verrouillage comptes
-│   │   ├── direction.py              # (/direction/*) Personnel, rapports, comptes
-│   │   ├── comptabilite.py           # (/comptabilite/*) Gestion bancaire, création
-│   │   └── client.py                 # (/client/*) Espace client, virements
-│   ├── services/                     # Services métier
-│   │   ├── auth_service.py           # Authentification, création users, RBAC
-│   │   └── report_service.py         # Génération PDF legacy
-│   ├── templates/                    # Front segmenté par rôle
-│   │   ├── base.html                 # Template de base commun
-│   │   ├── login.html                # Page de connexion
-│   │   ├── register.html             # Page d'inscription (désactivée)
-│   │   ├── errors/                   # Pages d'erreur (401, 403, 404, 500)
-│   │   ├── soc/                      # Templates SOC (dashboard, alerts, events...)
-│   │   ├── direction/                # Templates Direction (dashboard, accounts, rapport...)
-│   │   ├── comptabilite/             # Templates Comptabilité (dashboard)
-│   │   └── client/                   # Templates Client (dashboard)
-│   └── static/css/                   # Styles CSS globaux
-├── secureDataMonitor/                # SOC Engine (Composant de Surveillance)
-│   ├── __init__.py
-│   ├── events/                       # Système événementiel Pub/Sub
-│   │   ├── dispatcher.py             # EventDispatcher central
-│   │   └── handlers.py               # Handlers pour chaque type d'événement
-│   ├── services/                     # Détection et journalisation
-│   │   ├── detection.py              # 7 règles de détection
-│   │   └── logger.py                 # Journalisation événements + alertes
-│   ├── routers/                      # API REST & WebSockets
-│   │   ├── api_alerts.py             # WebSocket broadcast + stats
-│   │   └── admin.py                  # Routes admin legacy
-│   ├── static/js/                    # Scripts JavaScript
-│   │   └── ws_alerts.js              # Client WebSocket batching
-│   └── templates/                    # Templates legacy (errors uniquement)
-├── logs/                             # Fichiers de log locaux
-│   └── security.log                  # Journal de sécurité
-├── .cache/jinja2/                    # Cache bytecode Jinja2 (performance)
-├── init_db.sql                       # Script initialisation BDD (schema + enums)
-├── seed_data.sql                     # Données de démonstration
-├── requirements.txt                  # Dépendances Python
-├── .env                              # Variables d'environnement (gitignored)
-├── env.example                       # Template .env
-├── Procfile                          # Configuration déploiement
-└── README.md                         # Ce fichier
+│
+├── app/
+│   ├── main.py
+│   │
+│   ├── database.py
+│   │
+│   ├── models/
+│   │   └── ...
+│   │
+│   ├── routers/
+│   │   ├── auth.py
+│   │   ├── soc.py
+│   │   ├── direction.py
+│   │   ├── comptabilite.py
+│   │   └── client.py
+│   │
+│   ├── services/
+│   │   ├── auth_service.py
+│   │   └── report_service.py
+│   │
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── login.html
+│   │   ├── errors/
+│   │   ├── soc/
+│   │   ├── direction/
+│   │   ├── comptabilite/
+│   │   └── client/
+│   │
+│   └── static/
+│       └── css/
+│
+├── secureDataMonitor/
+│   ├── events/
+│   │   ├── dispatcher.py
+│   │   └── handlers.py
+│   │
+│   ├── services/
+│   │   ├── detection.py
+│   │   └── logger.py
+│   │
+│   ├── routers/
+│   │   ├── api_alerts.py
+│   │   └── admin.py
+│   │
+│   ├── static/
+│   │   └── js/
+│   │       └── ws_alerts.js
+│   │
+│   └── templates/
+│
+├── logs/
+│   └── security.log
+│
+├── init_db.sql
+├── seed_data.sql
+├── requirements.txt
+├── env.example
+├── Procfile
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-## 💾 5. Modèle de Données
+## 👥 Authentication & RBAC
 
-Le modèle repose sur PostgreSQL avec 5 tables principales :
+The application implements strict role separation.
 
-### Tables Principales
+### Roles
 
-#### **`users`** - Utilisateurs du système
-- `id` (UUID) - Identifiant unique
-- `username` (VARCHAR 50) - Nom d'utilisateur (unique)
-- `email` (VARCHAR 100) - Email (unique)
-- `password_hash` (VARCHAR 255) - Hash bcrypt
-- `role` (ENUM: soc, directeur, comptable, utilisateur)
-- `is_locked` (BOOLEAN) - Statut de verrouillage
-- `failed_attempts` (INTEGER) - Compteur d'échecs
-- `last_failed_at` (TIMESTAMP) - Dernier échec
-- `created_at` (TIMESTAMP) - Date de création
+| Role        | Main responsibility                         |
+| ----------- | ------------------------------------------- |
+| `client`    | Personal banking operations                 |
+| `comptable` | Banking/accounting operations               |
+| `directeur` | Management and full reporting               |
+| `soc`       | Security monitoring and incident management |
 
-#### **`bank_accounts`** - Comptes bancaires
-- `id` (UUID) - Identifiant unique
-- `id_compte` (VARCHAR 20) - Numéro de compte (unique)
-- `titulaire` (VARCHAR 100) - Nom du titulaire
-- `solde` (DECIMAL 15,2) - Solde actuel
-- `historique` (TEXT) - **JSON sérialisé des transactions**
-- `classification` (ENUM: public, confidentiel, secret)
-- `owner_id` (UUID FK → users.id) - Propriétaire du compte
-- `created_at` (TIMESTAMP) - Date de création
+Each role has access only to the resources required for its responsibilities.
 
-#### **`security_events`** - Journal de sécurité
-- `id` (UUID) - Identifiant unique
-- `timestamp` (TIMESTAMP) - Horodatage
-- `username` (VARCHAR 50) - Utilisateur concerné
-- `ip_address` (INET) - Adresse IP
-- `event_type` (ENUM: 13 types dont BANK_FRAUD_ATTEMPT)
-- `severity` (ENUM: LOW, MEDIUM, HIGH, CRITICAL)
-- `description` (TEXT) - Description détaillée
-- `status` (ENUM: open, investigating, closed)
-- `action_taken` (TEXT) - Action entreprise
+This implements a basic **Segregation of Duties (SoD)** model.
 
-#### **`alerts`** - Alertes générées
-- `id` (UUID) - Identifiant unique
-- `timestamp` (TIMESTAMP) - Horodatage
-- `alert_level` (ENUM: LOW, MEDIUM, HIGH, CRITICAL)
-- `source_event_id` (UUID FK → security_events.id)
-- `message` (TEXT) - Message d'alerte
-- `resolved` (BOOLEAN) - Statut de résolution
+### Example
 
-#### **`login_attempts`** - Tentatives de connexion
-- `id` (UUID) - Identifiant unique
-- `ip_address` (INET) - Adresse IP source
-- `username_tried` (VARCHAR 50) - Username essayé
-- `timestamp` (TIMESTAMP) - Horodatage
-- `success` (BOOLEAN) - Succès ou échec
+A `comptable` can access accounting reports but cannot access the management report containing secret accounts.
 
-### Index Performance
+Attempting to access a restricted resource results in:
 
-- `idx_login_attempts_username_time` - Détection brute force
-- `idx_login_attempts_ip_time` - Détection énumération
-- `idx_security_events_type`, `idx_security_events_severity` - Filtrage dashboard
-- `idx_alerts_unresolved` - Alertes actives
-- `idx_bank_accounts_owner` - Accès rapide par propriétaire
+```text
+HTTP 403 Forbidden
+        +
+Security Event
+        +
+CRITICAL Alert
+        +
+SOC WebSocket Notification
+```
 
 ---
 
-## 👥 6. Identification et Rôles (RBAC)
+## 🚨 Security Monitoring
 
-L'inscription publique est **désactivée**. Les comptes sont créés exclusivement par la **Direction**.
+SecureDataMonitor processes application events and applies detection rules to them.
 
-| Username | Role | Espace Dédié | Privilèges & Responsabilités |
-|---|---|---|---|
-| **`soc`** | `soc` | `/soc/*` | Surveillance temps réel, **Verrouillage des comptes**, Logs bruts, Clear data, Alerts, Events |
-| **`directeur`** | `directeur` | `/direction/*` | **Recrutement/Radiation personnel**, **Rapports complets** (PUBLIC+CONFIDENTIEL+SECRET), Gestion comptes bancaires |
-| **`hor`** | `comptable` | `/comptabilite/*` | **Création de comptes bancaires**, **Rapports** (PUBLIC+CONFIDENTIEL), Gestion virements |
-| **`dupont`** | `utilisateur` | `/client/*` | Consultation soldes, **Virements personnels**, Historique transactions |
+### Security Events
 
-### Matrice d'Accès aux Rapports
+The system supports events such as:
 
-| Rôle | `/direction/rapport` | `/comptabilite/rapport` |
-|------|---------------------|------------------------|
-| directeur | ✅ AUTORISÉ | ✅ AUTORISÉ |
-| comptable | ❌ INTERDIT → **CRITICAL** | ✅ AUTORISÉ |
-| soc | ❌ INTERDIT → **CRITICAL** | ❌ INTERDIT → **CRITICAL** |
-| utilisateur | ❌ INTERDIT → **CRITICAL** | ❌ INTERDIT → **CRITICAL** |
-
----
-
-## 🛣️ 7. Routes et Espaces Métiers
-
-### **Espace Authentification** (`/auth`)
-- `GET /auth/login` - Page de connexion
-- `POST /auth/login` - Traitement login
-- `GET /auth/logout` - Déconnexion
-- `GET /auth/register` - Inscription (désactivée)
-- `POST /auth/register` - Création compte (désactivée)
-
-### **Espace SOC** (`/soc`)
-- `GET /soc/dashboard` - Dashboard sécurité temps réel (WebSockets)
-- `GET /soc/users` - Liste utilisateurs avec actions verrouillage/déverrouillage
-- `GET /soc/alerts` - Gestion des alertes (actives/résolues)
-- `GET /soc/events` - Historique événements de sécurité
-- `GET /soc/logs/raw` - Affichage brut du fichier security.log
-- `GET /soc/clear-data` - Page suppression données (confirmations)
-- `POST /soc/clear-data` - Suppression effective alerts + events
-- `POST /soc/alerts/{id}/resolve` - Résolution manuelle d'alerte
-- `POST /soc/users/{id}/lock` - Verrouillage compte utilisateur
-- `POST /soc/users/{id}/unlock` - Déverrouillage compte utilisateur
-
-### **Espace Direction** (`/direction`)
-- `GET /direction/dashboard` - Dashboard direction (stats sécurité)
-- `GET /direction/users` - Gestion personnel (SOC, directeurs, comptables)
-- `GET /direction/users/new` - Formulaire recrutement
-- `POST /direction/users/new` - Création nouveau personnel
-- `POST /direction/users/{id}/delete` - Radiation personnel
-- `GET /direction/accounts` - **Vision complète des comptes** (PUBLIC+CONFIDENTIEL+SECRET)
-- `GET /direction/rapport` - **Rapport PDF détaillé** tous comptes avec horodatages
-
-### **Espace Comptabilité** (`/comptabilite`)
-- `GET /comptabilite/dashboard` - Dashboard gestion bancaire
-- `POST /comptabilite/accounts/create` - Création nouveau compte bancaire
-- `GET /comptabilite/rapport` - **Rapport PDF** comptes PUBLIC+CONFIDENTIEL uniquement
-
-### **Espace Client** (`/client`)
-- `GET /client/dashboard` - Dashboard client personnel
-- `POST /client/transfers` - Effectuer un virement
-- `GET /client/history` - Historique transactions personnelles
-
-### **WebSocket**
-- `WS /ws/alerts` - Connexion temps réel pour alertes SOC
-
-### **Health Check**
-- `GET /health` - Vérification statut BDD
-- `GET /` - Redirection vers `/auth/login`
+| Event                  | Description                        | Severity |
+| ---------------------- | ---------------------------------- | -------- |
+| `login_success`        | Successful login                   | LOW      |
+| `login_failed`         | Failed login                       | MEDIUM   |
+| `account_locked`       | Account locked                     | MEDIUM   |
+| `unknown_user`         | Unknown username                   | MEDIUM   |
+| `unauthorized`         | Unauthorized access                | HIGH     |
+| `privilege_escalation` | Privilege escalation attempt       | HIGH     |
+| `rate_limit`           | Rate-limit event                   | MEDIUM   |
+| `mass_data_access`     | Excessive data access              | CRITICAL |
+| `off_hours_access`     | Access outside allowed hours       | LOW      |
+| `sql_injection`        | SQL injection pattern detected     | HIGH     |
+| `enum_attempt`         | Username enumeration               | MEDIUM   |
+| `suspicious_url`       | Suspicious URL detected            | HIGH     |
+| `bank_fraud_attempt`   | Unauthorized banking report access | CRITICAL |
 
 ---
 
-## ⚡ 8. Moteur Événementiel
+## 🔎 SOC Detection Rules
 
-Le système utilise un **Dispatcher asynchrone** (pattern Pub/Sub) pour traiter les menaces sans ralentir l'utilisateur :
+The monitoring engine implements seven main detection policies.
 
-### Architecture Événementielle
+### Rule 1 — Brute Force
+
+Detects repeated authentication failures.
+
+```text
+3 failed login attempts
+        ↓
+within 2 minutes
+        ↓
+Account automatically locked
+        ↓
+MEDIUM alert
+```
+
+---
+
+### Rule 2 — SQL Injection
+
+Detects common SQL injection patterns in user-controlled parameters.
+
+Examples include:
+
+```text
+' OR 1=1
+UNION SELECT
+; DROP
+```
+
+The application rejects suspicious input and records the security event.
+
+Severity:
+
+```text
+HIGH
+```
+
+---
+
+### Rule 3 — Unauthorized Access
+
+Detects attempts by users to access administrative or SOC resources without the required role.
+
+Example:
+
+```text
+client → /soc/dashboard
+```
+
+Expected behavior:
+
+```text
+403 Forbidden
++
+HIGH security alert
+```
+
+---
+
+### Rule 4 — Mass Data Access
+
+Detects excessive access to application data.
+
+Example threshold:
+
+```text
+> 20 accesses
+within < 1 minute
+```
+
+The behavior is flagged as potential data exfiltration.
+
+Severity:
+
+```text
+CRITICAL
+```
+
+---
+
+### Rule 5 — Username Enumeration
+
+Detects multiple username discovery attempts originating from the same IP.
+
+Example:
+
+```text
+3 different usernames
+within 5 minutes
+from the same IP
+```
+
+Severity:
+
+```text
+MEDIUM
+```
+
+---
+
+### Rule 6 — Off-Hours Access
+
+Monitors authentication activity outside the configured working hours.
+
+Default configuration:
+
+```text
+Allowed hours: 07:00 → 20:00 UTC
+```
+
+The event is recorded for monitoring and investigation.
+
+Severity:
+
+```text
+LOW
+```
+
+---
+
+### Rule 7 — Banking File Theft
+
+Protects sensitive banking reports from unauthorized roles.
+
+Example:
+
+```text
+Comptable
+    │
+    └──> /direction/rapport
+              │
+              ▼
+        Access denied
+              │
+              ├── HTTP 403
+              ├── CRITICAL alert
+              ├── Security event
+              └── Real-time SOC notification
+```
+
+This is one of the main security scenarios implemented by the project.
+
+---
+
+## ⚡ Event-Driven Engine
+
+The application uses an asynchronous dispatcher based on a Publish/Subscribe model.
+
+A router can emit an event without directly handling all the security consequences.
+
+Conceptually:
 
 ```python
-# 1. Un router émet un événement
-await dispatcher.emit("bank_fraud_attempt", {
-    "ip": "192.168.1.100",
-    "username": "jean_comptable",
-    "role": "comptable",
-    "path": "/direction/rapport"
-})
-
-# 2. Le dispatcher appelle tous les handlers abonnés
-# 3. Chaque handler exécute en parallèle :
-#    - Journalisation dans security_events
-#    - Création d'alerte si nécessaire
-#    - Broadcast WebSocket aux dashboards
-#    - Actions automatiques (verrouillage, etc.)
+await dispatcher.emit(
+    "bank_fraud_attempt",
+    {
+        "ip": "192.168.1.100",
+        "username": "user",
+        "role": "comptable",
+        "path": "/direction/rapport"
+    }
+)
 ```
 
-### Types d'Événements Supportés
+The dispatcher then forwards the event to subscribed handlers.
 
-| Événement | Déclencheur | Handler | Sévérité |
-|-----------|-------------|---------|----------|
-| `login_success` | Connexion réussie | `handle_login_success` | LOW |
-| `login_failed` | Échec connexion | `handle_failed_login` | MEDIUM |
-| `account_locked` | Compte verrouillé | `handle_account_locked` | MEDIUM |
-| `unknown_user` | Utilisateur inconnu | `handle_unknown_user` | MEDIUM |
-| `unauthorized` | Accès non autorisé | `handle_unauthorized` | HIGH |
-| `privilege_escalation` | Escalade privilèges | `handle_privilege_escalation` | HIGH |
-| `rate_limit` | Rate limiting | `handle_rate_limit` | MEDIUM |
-| `mass_data_access` | Exfiltration massive | `handle_mass_access` | CRITICAL |
-| `off_hours_access` | Accès hors horaires | `handle_off_hours` | LOW |
-| `sql_injection` | Injection SQL détectée | `handle_sql_injection` | HIGH |
-| `enum_attempt` | Énumération usernames | `handle_enum_attempt` | MEDIUM |
-| `suspicious_url` | URL suspecte | `handle_suspicious_url` | HIGH |
-| **`bank_fraud_attempt`** | **Vol dossiers bancaires** | **`handle_bank_fraud_attempt`** | **CRITICAL** |
+Handlers can:
+
+* write the event to the security log
+* create a security alert
+* broadcast the alert through WebSockets
+* update monitoring statistics
+* trigger automated security actions
+
+This separation makes the security monitoring layer easier to extend.
 
 ---
 
-## 🚨 9. Règles de Détection SOC
+## 📡 Real-Time SOC Dashboard
 
-Le moteur Monitor écoute et réagit selon **7 politiques de sécurité** :
+The `/soc/dashboard` interface provides real-time visibility into security activity.
 
-| Règle | Nom | Description | Déclencheur | Réaction | Alerte |
-|-------|-----|-------------|-------------|----------|--------|
-| **Règle 1** | Brute Force | 3 échecs en < 2min | `check_brute_force()` | Verrouillage automatique compte | **MEDIUM** |
-| **Règle 2** | Injection SQL | Patterns `' OR 1=1`, `UNION SELECT`, `; DROP` | `check_sql_injection()` | Rejet 400 immédiat + Log payload | **HIGH** |
-| **Règle 3** | Accès Illégitime | Client tentant `/soc/*` ou `/admin/*` | `check_admin_access()` | Permission Denied (403) | **HIGH** |
-| **Règle 4** | Exfiltration Masse | >20 accès données en < 1min | `record_data_access()` | Signalement suspicion exfiltration | **CRITICAL** |
-| **Règle 5** | Énumération | 3 usernames différents depuis IP < 5min | `check_enumeration()` | Fichage et surveillance IP | **MEDIUM** |
-| **Règle 6** | Off-Hours | Connexion entre 20h00 et 07h00 UTC | `check_off_hours()` | Inscription discrète événement | **LOW** |
-| **Règle 7** | **Vol Dossiers** | **Accès non autorisé aux rapports bancaires** | **`check_unauthorized_report_access()`** | **Accès refusé + Alerte immédiate** | **🔴 CRITICAL** |
+### Monitoring capabilities
 
-### Détail Règle 7 - Vol de Dossiers Bancaires
+* Security event frequency
+* Severity distribution
+* Suspicious IP addresses
+* Latest unresolved alerts
+* Latest security events
+* Global event counters
+* Number of active alerts
+* Locked accounts
 
-**Routes protégées :**
-- `/direction/rapport` → Réservé au **directeur** uniquement
-- `/comptabilite/rapport` → Réservé au **comptable** et **directeur**
+The dashboard receives events through:
 
-**Actions déclenchées :**
-1. Journalisation événement `BANK_FRAUD_ATTEMPT` (sévérité CRITICAL)
-2. Création alerte CRITICAL avec message explicite
-3. Broadcast WebSocket temps réel aux dashboards SOC
-4. Log critique dans `security.log`
-
-**Exemple d'alerte :**
+```text
+WebSocket
+    ↓
+Batching
+    ↓
+requestAnimationFrame
+    ↓
+UI update
 ```
-🚨⚠️ VOL DE DOSSIERS BANCAIRES : Utilisateur 'jean_comptable' (rôle: comptable) 
-a tenté d'accéder à /direction/rapport depuis 192.168.1.100 - NIVEAU CRITIQUE
-```
+
+This avoids continuously reloading the page and allows security events to appear in near real time.
 
 ---
 
-## 📄 10. Rapports Bancaires
+## 📊 Severity Model
 
-Le système génère des **rapports PDF structurés** groupés par classification de sécurité.
-
-### Rapport Direction (`/direction/rapport`)
-
-**Accès :** Directeur uniquement  
-**Contenu :** TOUS les comptes (PUBLIC + CONFIDENTIEL + SECRET)
-
-**Structure du PDF :**
-```
-┌─────────────────────────────────────────┐
-│  XUD-BANK - RAPPORT DETAILLE DES COMPTES│
-│  Généré le 03/04/2026 à 14:30           │
-│  Par: directeur (Directeur)             │
-│  Accès: PUBLIC + CONFIDENTIEL + SECRET  │
-├─────────────────────────────────────────┤
-│  STATISTIQUES GLOBALES                  │
-│  Total Global: 1,250,000.00 XOF         │
-│  PUBLIC: 5 comptes | CONFIDENTIEL: 8    │
-│  SECRET: 3 comptes                      │
-├─────────────────────────────────────────┤
-│  [PUBLIC] COMPTES PUBLIC                │
-│  Sous-total: 250,000.00 XOF (5 comptes) │
-│  ┌──────────┬──────────┬──────────┐    │
-│  │ ID       │Titulaire │ Solde    │    │
-│  ├──────────┼──────────┼──────────┤    │
-│  │ FR76...  │ Dupont   │ 50,000   │    │
-│  └──────────┴──────────┴──────────┘    │
-├─────────────────────────────────────────┤
-│  [CONFIDENTIEL] COMPTES CONFIDENTIEL    │
-│  ...                                    │
-├─────────────────────────────────────────┤
-│  [SECRET] COMPTES SECRET                │
-│  ...                                    │
-└─────────────────────────────────────────┘
-```
-
-### Rapport Comptabilité (`/comptabilite/rapport`)
-
-**Accès :** Comptable et Directeur  
-**Contenu :** Seulement PUBLIC + CONFIDENTIEL (pas de SECRET)
-
-**Différences avec rapport Direction :**
-- Pas de section SECRET
-- Mention "Accès : PUBLIC + CONFIDENTIEL"
-- Titre "RAPPORT DES COMPTES - COMPTABILITE"
-
-### Caractéristiques Communes
-
-✅ **Ouverture directe** dans le navigateur (`Content-Disposition: inline`)  
-✅ **Groupement par classification** avec codes couleur  
-✅ **Horodatages complets** (date création, dernière MAJ)  
-✅ **Statistiques détaillées** (sous-totaux par section)  
-✅ **Pagination automatique** pour longs rapports  
-✅ **Nom de fichier horodaté** : `rapport_YYYYMMDD_HHMM.pdf`  
+| Severity | Purpose                    | Examples                             |
+| -------- | -------------------------- | ------------------------------------ |
+| LOW      | Informational activity     | Successful login, off-hours access   |
+| MEDIUM   | Suspicious behavior        | Brute force, enumeration             |
+| HIGH     | Confirmed security concern | SQL injection, unauthorized access   |
+| CRITICAL | Major security incident    | Mass data access, banking file theft |
 
 ---
 
-## 🚀 11. Installation & Déploiement
+## 📄 Banking Reports
 
-### Prérequis
+The application generates structured PDF reports based on security classifications.
 
-- Python 3.11+
-- PostgreSQL (local ou Railway)
-- pip (gestionnaire de paquets Python)
+### Management Report
 
-### Initialisation
+Endpoint:
 
-```bash
-# 1. Cloner le repository
-git clone <repository-url>
-cd xud-bank
-
-# 2. Créer environnement virtuel
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate     # Windows
-
-# 3. Installer dépendances
-pip install -r requirements.txt
-
-# 4. Configurer variables d'environnement
-cp env.example .env
-# Éditer .env avec vos credentials BDD
-nano .env
-
-# 5. Initialiser base de données (remise à zéro complète)
-psql $DATABASE_URL < init_db.sql
-psql $DATABASE_URL < seed_data.sql
-
-# 6. Lancer serveur développement
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```text
+GET /direction/rapport
 ```
 
-### Variables d'Environnement (.env)
+Access:
 
-```env
-# Base de données
-DATABASE_URL=postgresql+asyncpg://user:pass@host:port/dbname
-
-# Sécurité sessions
-SECRET_KEY=votre_cle_secrete_tres_longue_et_aleatoire
-
-# Configuration détection
-BRUTE_FORCE_WINDOW=120
-MAX_LOGIN_ATTEMPTS=3
-MASS_ACCESS_WINDOW=60
-MASS_ACCESS_LIMIT=20
-ENUM_WINDOW=300
-ENUM_USERNAMES_LIMIT=3
-ALLOWED_HOURS_START=7
-ALLOWED_HOURS_END=20
-
-# Logging
-LOG_FILE_PATH=logs/security.log
+```text
+Director only
 ```
 
-### Déploiement Production
+The report contains:
 
-```bash
-# Utiliser Gunicorn avec workers uvicorn
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+* PUBLIC accounts
+* CONFIDENTIAL accounts
+* SECRET accounts
+* Global statistics
+* Section subtotals
+* Account information
+* Creation/update timestamps
 
-# Ou via Procfile (Heroku/Railway)
-web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+---
+
+### Accounting Report
+
+Endpoint:
+
+```text
+GET /comptabilite/rapport
+```
+
+Access:
+
+```text
+Accountant + Director
+```
+
+The report contains:
+
+* PUBLIC accounts
+* CONFIDENTIAL accounts
+
+SECRET accounts are excluded.
+
+This demonstrates how access control can also be applied to generated business documents.
+
+---
+
+## 🌐 Main Routes
+
+### Authentication
+
+```text
+GET  /auth/login
+POST /auth/login
+GET  /auth/logout
+GET  /auth/register
+POST /auth/register
+```
+
+Registration is disabled in the deployed configuration.
+
+### SOC
+
+```text
+GET  /soc/dashboard
+GET  /soc/users
+GET  /soc/alerts
+GET  /soc/events
+GET  /soc/logs/raw
+
+POST /soc/alerts/{id}/resolve
+POST /soc/users/{id}/lock
+POST /soc/users/{id}/unlock
+```
+
+### Management
+
+```text
+GET  /direction/dashboard
+GET  /direction/users
+GET  /direction/accounts
+GET  /direction/rapport
+
+POST /direction/users/new
+POST /direction/users/{id}/delete
+```
+
+### Accounting
+
+```text
+GET  /comptabilite/dashboard
+POST /comptabilite/accounts/create
+GET  /comptabilite/rapport
+```
+
+### Customer
+
+```text
+GET  /client/dashboard
+POST /client/transfers
+GET  /client/history
+```
+
+### WebSocket
+
+```text
+WS /ws/alerts
+```
+
+### Health Check
+
+```text
+GET /health
 ```
 
 ---
 
-## 📝 12. Journalisation
+## 🗄️ Data Model
 
-La sécurité s'accompagne d'une visibilité totale sur 3 niveaux :
+The application uses PostgreSQL as its persistence layer.
 
-### 1. Fichiers Locaux
-- **Emplacement :** `logs/security.log`
-- **Format :** Texte structuré avec timestamps
-- **Usage :** Analyses judiciaires, audit post-mortem
-- **Rotation :** À configurer selon politique entreprise
+The database stores both business information and security monitoring information.
 
-### 2. Dashboard Temps Réel
-- **URL :** `/soc/dashboard`
-- **Technologie :** WebSockets avec batching `requestAnimationFrame`
-- **Fonctionnalités :**
-  - Graphiques fréquence événements (Chart.js)
-  - Stats par sévérité (LOW/MEDIUM/HIGH/CRITICAL)
-  - Top IPs suspectes
-  - Alertes en temps réel
-  - Liste derniers événements
+Important entities include:
 
-### 3. Persistance Base de Données
-- **Table `security_events`** : Historique indélébile de tous les incidents
-- **Table `alerts`** : Notifications levées avec statut résolution
-- **Requêtes optimisées** : Index sur timestamp, severity, event_type
-- **Cache 5 secondes** : Dashboard stats avec TTL pour performance
+* users
+* bank accounts
+* transactions
+* security events
+* alerts
 
-### Niveaux de Sévérité
+Security monitoring data is persisted so that incidents can be reviewed after they occur.
 
-| Niveau | Couleur | Usage | Exemple |
-|--------|---------|-------|---------|
-| **LOW** | 🟢 Vert | Information normale | Connexion réussie, accès hors horaires |
-| **MEDIUM** | 🟡 Jaune | Attention requise | Échec connexion ×3, énumération |
-| **HIGH** | 🟠 Orange | Danger détecté | Injection SQL, accès non autorisé |
-| **CRITICAL** | 🔴 Rouge | Urgence absolue | Exfiltration massive, **vol dossiers** |
+Indexes are used on important security fields such as:
 
----
-
-## 🧪 13. Tests des Triggers d'Événements
-
-### Test 1 : Escalade de Privilège (Règle 3)
-
-**Objectif :** Vérifier que les rôles sont étanches
-
-```bash
-# Se connecter en tant que client (dupont)
-curl -X POST http://localhost:8000/auth/login \
-  -d "email=dupont@mail.com&password=Dupont@1234" \
-  -c cookies.txt
-
-# Tenter d'accéder à la console SOC
-curl http://localhost:8000/soc/users -b cookies.txt
-
-# Tenter d'accéder au rapport direction
-curl http://localhost:8000/direction/rapport -b cookies.txt
+```text
+timestamp
+severity
+event_type
 ```
 
-**Résultat attendu :** 
-- Code 403 Forbidden
-- Alerte **CRITICAL** dans `/soc/dashboard`
-- Message : "🚨⚠️ VOL DE DOSSIERS BANCAIRES"
+---
+
+## 📝 Logging
+
+Security visibility is provided at three levels.
+
+### 1. Local Security Log
+
+```text
+logs/security.log
+```
+
+Used for:
+
+* forensic analysis
+* troubleshooting
+* post-incident review
+* security auditing
+
+### 2. SOC Dashboard
+
+Real-time visualization of:
+
+* events
+* alerts
+* severity
+* suspicious IPs
+* recent incidents
+
+### 3. Database
+
+Security events and alerts are persisted in PostgreSQL.
+
+This provides historical visibility even after the real-time alert has disappeared from the dashboard.
 
 ---
 
-### Test 2 : Verrouillage SOC (Règle 1)
+## 🧪 Security Test Scenarios
 
-**Objectif :** Simuler attaque brute-force
+The project includes reproducible scenarios for validating the detection engine.
+
+### Brute Force
 
 ```bash
 for i in {1..4}; do
   curl -X POST http://localhost:8000/auth/login \
-    -d "email=directeur@xud-bank.com&password=FauxPassword"
+    -d "email=user@example.com&password=WrongPassword"
 done
 ```
 
-**Résultat attendu :**
-- Après 3 essais : compte devient `is_locked = TRUE`
-- Alerte MEDIUM créée
-- SOC peut déverrouiller via `/soc/users`
+Expected behavior:
 
----
+```text
+3 failed attempts
+        ↓
+Account locked
+        ↓
+MEDIUM alert
+```
 
-### Test 3 : Injection SQL (Règle 2)
-
-**Objectif :** Tester détection patterns SQL
+### SQL Injection Detection
 
 ```bash
-# Tentative injection dans login
 curl -X POST http://localhost:8000/auth/login \
   -d "email=admin' OR '1'='1&password=test"
-
-# Tentative UNION injection
-curl "http://localhost:8000/client/dashboard?id=1 UNION SELECT * FROM users"
 ```
 
-**Résultat attendu :**
-- Rejet immédiat (400 Bad Request)
-- Alerte HIGH dans dashboard
-- Payload SQL journalisé
+Expected behavior:
 
----
+```text
+400 Bad Request
++
+HIGH alert
++
+Payload logged
+```
 
-### Test 4 : Vol Dossiers Bancaires (Règle 7)
-
-**Objectif :** Vérifier protection rapports sensibles
+### Unauthorized Banking Report Access
 
 ```bash
-# Se connecter en tant que comptable
-curl -X POST http://localhost:8000/auth/login \
-  -d "email=hor@xud-bank.com&password=Hor@1234" \
-  -c cookies_comptable.txt
-
-# Tenter d'accéder au rapport direction (interdit)
-curl http://localhost:8000/direction/rapport -b cookies_comptable.txt
+curl http://localhost:8000/direction/rapport \
+  -b cookies_comptable.txt
 ```
 
-**Résultat attendu :**
-- Code 403 Forbidden
-- Alerte **CRITICAL** immédiate
-- Message : "🚨⚠️ VOL DE DOSSIERS BANCAIRES : Utilisateur 'hor' (rôle: comptable) a tenté d'accéder à /direction/rapport"
-- Apparition en temps réel sur dashboard SOC
+Expected behavior:
 
----
+```text
+403 Forbidden
++
+CRITICAL alert
++
+Real-time SOC notification
+```
 
-### Test 5 : Exfiltration Massive (Règle 4)
-
-**Objectif :** Simuler consultation excessive de données
+### Mass Data Access
 
 ```python
 import requests
 
 session = requests.Session()
-# Login d'abord
-session.post("http://localhost:8000/auth/login", 
-             data={"email": "hor@xud-bank.com", "password": "Hor@1234"})
 
-# Consulter dashboard comptabilité 25 fois rapidement
-for i in range(25):
-    session.get("http://localhost:8000/comptabilite/dashboard")
+for _ in range(25):
+    session.get(
+        "http://localhost:8000/comptabilite/dashboard"
+    )
 ```
 
-**Résultat attendu :**
-- Après 20 consultations en < 1min : alerte CRITICAL
-- Événement `MASS_DATA_ACCESS` créé
-- Notification SOC temps réel
+Expected behavior:
+
+```text
+>20 accesses within 1 minute
+        ↓
+CRITICAL alert
+        ↓
+MASS_DATA_ACCESS event
+```
 
 ---
 
-### Test 6 : Génération Rapports PDF
+## 🚀 Installation
 
-**Objectif :** Vérifier génération rapports structurés
+### Requirements
+
+* Python 3.11+
+* PostgreSQL
+* pip
+* Git
+
+### Clone
 
 ```bash
-# Se connecter en directeur
-curl -X POST http://localhost:8000/auth/login \
-  -d "email=directeur@xud-bank.com&password=Directeur@1234" \
-  -c cookies_directeur.txt
-
-# Télécharger rapport complet
-curl http://localhost:8000/direction/rapport \
-  -b cookies_directeur.txt \
-  -o rapport_direction.pdf
-
-# Ouvrir dans navigateur
-xdg-open rapport_direction.pdf  # Linux
-open rapport_direction.pdf      # Mac
-start rapport_direction.pdf     # Windows
+git clone https://github.com/whitexudan15/xud-bank.git
+cd xud-bank
 ```
 
-**Résultat attendu :**
-- PDF bien formaté avec sections colorées
-- Groupement PUBLIC / CONFIDENTIEL / SECRET
-- Statistiques globales correctes
-- Horodatages complets
+### Create virtual environment
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Windows:
+
+```powershell
+.venv\Scripts\activate
+```
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configure environment
+
+```bash
+cp env.example .env
+```
+
+Configure the database and application secrets in `.env`.
+
+Example:
+
+```env
+DATABASE_URL=postgresql+asyncpg://user:password@host:5432/database
+
+SECRET_KEY=your-long-random-secret-key
+
+BRUTE_FORCE_WINDOW=120
+MAX_LOGIN_ATTEMPTS=3
+
+MASS_ACCESS_WINDOW=60
+MASS_ACCESS_LIMIT=20
+
+ENUM_WINDOW=300
+ENUM_USERNAMES_LIMIT=3
+
+ALLOWED_HOURS_START=7
+ALLOWED_HOURS_END=20
+
+LOG_FILE_PATH=logs/security.log
+```
+
+### Initialize database
+
+```bash
+psql $DATABASE_URL < init_db.sql
+psql $DATABASE_URL < seed_data.sql
+```
+
+### Start the application
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The application is then available locally at:
+
+```text
+http://localhost:8000
+```
 
 ---
 
-## 🎯 Bonnes Pratiques de Sécurité
+## ☁️ Deployment
 
-### Pour les Développeurs
+The application was previously deployed using **Railway** with a PostgreSQL database for demonstration purposes.
 
-1. **Ne jamais commit `.env`** - Contient secrets et credentials
-2. **Utiliser `require_role()`** - Toujours protéger routes sensibles
-3. **Logger les accès critiques** - Toutes les actions importantes doivent être tracées
-4. **Valider inputs** - Tous les paramètres utilisateur doivent être validés
-5. **HTTPS en production** - Jamais de sessions en clair
+The free deployment period has expired, so the public demo is **currently offline**.
 
-### Pour les Administrateurs SOC
+The repository remains fully available for:
 
-1. **Surveiller alertes CRITICAL** - Réponse immédiate requise
-2. **Vérifier logs quotidiennement** - Détection proactive
-3. **Auditer accès rapports** - Qui consulte quoi et quand
-4. **Rotation mots de passe** - Politique stricte pour comptes privilégiés
-5. **Backup régulier BDD** - Inclure security_events pour audit
+* source-code review
+* local deployment
+* security testing
+* architectural study
+* portfolio demonstration
 
-### Pour les Utilisateurs
+The project includes the required deployment configuration through the `Procfile`.
 
-1. **Mots de passe forts** - Minimum 12 caractères, mixte
-2. **Ne pas partager credentials** - Chaque utilisateur a son propre compte
-3. **Signaler activités suspectes** - Contacter SOC immédiatement
-4. **Déconnexion systématique** - Sur postes partagés
-5. **Vérifier URLs** - Phishing possible
+Example:
+
+```text
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
 
 ---
 
-## 📊 Métriques et Monitoring
+## 🔐 Security Best Practices Applied
 
-### Indicateurs Clés (KPIs)
+### Application
 
-- **Temps moyen réponse alertes CRITICAL** : Objectif < 5 minutes
-- **Nombre tentatives intrusion/jour** : Surveillance tendance
-- **Taux faux positifs** : Ajustement règles si > 10%
-- **Disponibilité système** : Objectif 99.9% uptime
-- **Temps génération rapports** : Objectif < 3 secondes
+* RBAC for sensitive routes
+* Segregation of Duties
+* Password hashing with Bcrypt
+* Session-based authentication
+* Input validation
+* Security event logging
+* Automated account locking
+* Restricted access to sensitive reports
 
-### Dashboard SOC
+### Security Monitoring
 
-Le dashboard `/soc/dashboard` fournit en temps réel :
-- Graphique fréquence événements (24h glissantes)
-- Répartition par sévérité (camembert)
-- Top 5 IPs suspectes
-- Dernières 10 alertes non résolues
-- Derniers 10 événements de sécurité
-- Compteurs globaux (events, alerts, locked accounts)
+* Centralized security events
+* Severity classification
+* Persistent alert history
+* Real-time WebSocket notifications
+* Detection thresholds
+* SOC-oriented dashboard
+* Incident resolution workflow
 
----
+### Development
 
-## 🔮 Évolutions Futures
+Sensitive configuration is stored through environment variables.
 
-### Court Terme
-- [ ] Authentification 2FA (TOTP)
-- [ ] Export CSV transactions
-- [ ] Recherche avancée dans historiques
-- [ ] Notifications email alertes CRITICAL
-- [ ] Rate limiting par IP
+```text
+.env
+```
 
-### Moyen Terme
-- [ ] Machine Learning détection anomalies
-- [ ] API REST externe pour partenaires
-- [ ] Audit trail complet (qui a fait quoi)
-- [ ] Chiffrement historique transactions
-- [ ] Multi-factor authentication obligatoire SOC
-
-### Long Terme
-- [ ] Microservices architecture
-- [ ] Blockchain pour immutabilité logs
-- [ ] Intelligence artificielle prédictive
-- [ ] Compliance RGPD automatisée
-- [ ] Disaster recovery site
+must never be committed to the repository.
 
 ---
 
-## 👨‍💻 Contributeurs
+## 📈 Project Highlights
 
-**Projet réalisé par l'équipe FAST-LPSIC M2**  
-Université de Kara - Session 2025-2026
-
-### Technologies Maîtrisées
-- Architecture événementielle asynchrone
-- Contrôle d'accès granulaire (RBAC)
-- Détection intrusion temps réel
-- Génération documents professionnels
-- WebSockets haute performance
-- Sécurité défense en profondeur
+| Area           | Implementation                        |
+| -------------- | ------------------------------------- |
+| Authentication | Session-based authentication + Bcrypt |
+| Authorization  | Role-Based Access Control             |
+| Security model | Segregation of Duties                 |
+| Monitoring     | Real-time SOC dashboard               |
+| Detection      | 7 security detection rules            |
+| Alerting       | LOW / MEDIUM / HIGH / CRITICAL        |
+| Response       | Automatic account locking             |
+| Real-time      | Native WebSockets                     |
+| Persistence    | PostgreSQL                            |
+| Logging        | File + database                       |
+| Reporting      | Classification-aware PDF reports      |
+| Architecture   | Layered + event-driven                |
+| Deployment     | Railway + local                       |
 
 ---
 
-## 📄 Licence
+## 🔮 Future Improvements
 
-Ce projet est développé dans un cadre académique. Toute utilisation commerciale doit faire l'objet d'une autorisation préalable.
+* [ ] TOTP-based 2FA
+* [ ] IP-based rate limiting
+* [ ] Email notifications for CRITICAL alerts
+* [ ] Advanced security-event search
+* [ ] CSV transaction export
+* [ ] Complete audit trail
+* [ ] Transaction history encryption
+* [ ] Mandatory MFA for SOC accounts
+* [ ] Machine-learning-based anomaly detection
+* [ ] External REST API
+* [ ] Improved incident-response workflows
+* [ ] Centralized log management
+* [ ] Integration with an external SIEM
+* [ ] WAF integration
+* [ ] IDS/IPS integration
+* [ ] Production-grade deployment architecture
 
 ---
 
-> **Note importante :** Cette application est une démonstration pédagogique. En production, des mesures de sécurité supplémentaires seraient nécessaires (WAF, IDS/IPS, chiffrement end-to-end, audit externe, etc.).
+## 📄 License
 
-**Pour toute question ou support technique, contacter l'équipe de développement.**
+This project was developed for academic and educational purposes.
+
+Commercial use or reuse of the project should be subject to appropriate authorization.
+
+---
+
+<p align="center">
+  <b>Xud-Bank — SecureDataMonitor</b><br>
+  Secure Web Application · Event-Driven Security Monitoring · Real-Time SOC
+</p>
