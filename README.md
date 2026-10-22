@@ -47,8 +47,8 @@ Web application → Security event dispatcher → Detection rules
 Python 3.11+, PostgreSQL and Git.
 
 ```bash
-git clone https://github.com/whitexudan15/xud-bank.git
-cd xud-bank
+git clone https://github.com/whitexudan/sentinel-security-monitoring.git
+cd sentinel-security-monitoring
 python -m venv .venv
 source .venv/bin/activate       # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -82,5 +82,7 @@ Sentinel is a learning project for secure web development, event-driven programm
 
 ## Author
 
-**TAKOUDA Kokou Trésor** — Cybersecurity Student  
-GitHub: [@whitexudan15](https://github.com/whitexudan15)
+<p align="center">
+  <strong>TAKOUDA Kokou Trésor</strong> — Cybersecurity Student<br>
+  GitHub: <a href="https://github.com/whitexudan">@whitexudan</a>
+</p>
